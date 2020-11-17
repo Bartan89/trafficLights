@@ -34,6 +34,7 @@ object TrafficLights extends App with JsonSupport {
   val SimpleRoute =
     pathPrefix("api") {
       get {
+        //http localhost:8080/api/traffic-lights/1
         path( ("traffic-lights" / IntNumber )) { lightId =>
           val trafficLight = db.find(trafficLight => {
             trafficLight.id == lightId
@@ -46,6 +47,7 @@ object TrafficLights extends App with JsonSupport {
         }
       } ~
         put {
+          //http PUT localhost:8080/api/traffic-lights color=Green id:=10
           path( ("traffic-lights" ))
           entity(as[TrafficLight]) { candidateTrafficLight =>
             val dubCheck = db.find(dbTrafficLight => {
