@@ -26,7 +26,8 @@ object TrafficLights extends App with JsonSupport {
   //dummy db
   var db = List(
     TrafficLight(1, "Green"),
-    TrafficLight(2, "Red")
+    TrafficLight(2, "Red"),
+    TrafficLight(3, "Orange")
   )
 
 
