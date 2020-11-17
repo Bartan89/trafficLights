@@ -6,6 +6,7 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json._
+import scala.collection.mutable
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.StdIn
 
@@ -18,7 +19,9 @@ trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
 object TrafficLights extends App with JsonSupport {
   implicit val system = ActorSystem("traficLightServer")
 
-  var trafficLightsMap = Map[Int, TrafficLight]()
+
+  //key value store
+  val trafficLightsMap = mutable.Map[Int, TrafficLight]()
 
   //dummy db
   var db = List(
@@ -26,7 +29,6 @@ object TrafficLights extends App with JsonSupport {
     TrafficLight(2, "Red"),
     TrafficLight(3, "Orange")
   )
-
 
   val routes =
     pathPrefix("api") {
@@ -45,11 +47,11 @@ object TrafficLights extends App with JsonSupport {
       } ~
         put {
           //http PUT localhost:8080/api/traffic-lights color=Green id:=10
-          path( ("traffic-lights" ))
-          entity(as[TrafficLight]) { candidateTrafficLight =>
-            val dubCheck = db.find(dbTrafficLight => {
-              dbTrafficLight.id == candidateTrafficLight.id
-            })
+          path( "traffic-lights" )
+            entity(as[TrafficLight]) { candidateTrafficLight =>
+              val dubCheck = db.find(dbTrafficLight => {
+                dbTrafficLight.id == candidateTrafficLight.id
+              })
 
             dubCheck match {
               case Some(id) => {
@@ -61,7 +63,6 @@ object TrafficLights extends App with JsonSupport {
                   } else {
                     dbTrafficLight.copy()
                   }
-
                 })
                 complete(db)
               }
@@ -91,6 +92,6 @@ object TrafficLights extends App with JsonSupport {
   println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
   StdIn.readLine()
   bindingFuture
-    .flatMap(_.unbind()) t
+    .flatMap(_.unbind())
     .onComplete(_ => system.terminate())
 }
