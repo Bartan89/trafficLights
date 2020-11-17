@@ -6,8 +6,6 @@ import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import spray.json._
-
-
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.io.StdIn
 
@@ -16,7 +14,6 @@ case class TrafficLight(id: Int, color : String)
 trait JsonSupport extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val colorFormat = jsonFormat2(TrafficLight)
 }
-
 
 object TrafficLights extends App with JsonSupport {
   implicit val system = ActorSystem("traficLightServer")
@@ -31,7 +28,7 @@ object TrafficLights extends App with JsonSupport {
   )
 
 
-  val SimpleRoute =
+  val routes =
     pathPrefix("api") {
       get {
         //http localhost:8080/api/traffic-lights/1
@@ -60,13 +57,7 @@ object TrafficLights extends App with JsonSupport {
                 println("let me update", trafficLightToUpdate.id)
                 db = db.map(dbTrafficLight => {
                   if(trafficLightToUpdate.id == dbTrafficLight.id) {
-                    //                        val newColor = trafficLightToUpdate.color
-                    //                        val dbColor = dbTrafficLight.color
-                    //                        val combinations = (newColor, dbColor)
-
                     dbTrafficLight.copy(color = trafficLightToUpdate.color)
-
-
                   } else {
                     dbTrafficLight.copy()
                   }
@@ -79,6 +70,7 @@ object TrafficLights extends App with JsonSupport {
                 println("let me add", newTrafficLight.id)
 
                 val newList = newTrafficLight :: db
+                //Can I do this without mutation?
                 db = newList
                 complete(db)
               }
@@ -94,12 +86,11 @@ object TrafficLights extends App with JsonSupport {
     }
 
 
-
-  val bindingFuture = Http().newServerAt("localhost", 8080).bind(SimpleRoute)
+  val bindingFuture = Http().newServerAt("localhost", 8080).bind(routes)
 
   println(s"Server online at http://localhost:8080/\nPress RETURN to stop...")
-  StdIn.readLine() // let it run until user presses return
+  StdIn.readLine()
   bindingFuture
-    .flatMap(_.unbind()) // trigger unbinding from the port
-    .onComplete(_ => system.terminate()) // and shutdown when do
+    .flatMap(_.unbind()) t
+    .onComplete(_ => system.terminate())
 }
